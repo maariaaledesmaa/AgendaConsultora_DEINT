@@ -68,6 +68,21 @@ namespace Agenda
             }
         }
 
+        public static string LeerCifValido(string mensaje) // Comprobando el formato del CIF
+        {
+            while (true)
+            {
+                string entrada = LeerTextoObligatorio(mensaje).ToUpper();
+                // Permite una letra inicial seguida de 7 u 8 números o caracteres
+                if (Regex.IsMatch(entrada, @"^[ABCDEFGHJNPQRSUVW][0-9]{7}[0-9A-J]$"))
+                {
+                    return entrada;
+                }
+
+                Console.WriteLine("> ERROR: Formato de CIF incorrecto. Ejemplo válido: B12345678");
+            }
+        }
+
         public static bool ConfirmarAccion(string mensaje) // Confirmación por consola
         {
             while (true)
