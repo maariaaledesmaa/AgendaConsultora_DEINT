@@ -24,12 +24,13 @@ namespace Agenda
                 Console.WriteLine("1. Dar de alta una empresa");
                 Console.WriteLine("2. Listar todas las empresas activas");
                 Console.WriteLine("3. Buscar empresa");
-                Console.WriteLine("4. Modificar empresa");
-                Console.WriteLine("5. Dar de baja una empresa");
-                Console.WriteLine("6. Volver al menú principal");
+                Console.WriteLine("4. Ver plantilla de personas de una empresa");
+                Console.WriteLine("5. Modificar empresa");
+                Console.WriteLine("6. Dar de baja una empresa");
+                Console.WriteLine("7. Volver al menú principal");
                 Console.WriteLine($"{rosaPastel}=================================={reset}");
 
-                int opcion = Validador.LeerEntero("Seleccione una opción (1-6): ", 1, 6);
+                int opcion = Validador.LeerEntero("Seleccione una opción (1-7): ", 1, 7);
 
                 Console.WriteLine();
                 switch (opcion)
@@ -37,9 +38,10 @@ namespace Agenda
                     case 1: AltaEmpresa(); break;
                     case 2: ListarEmpresas(); break;
                     case 3: BuscarEmpresa(); break;
-                    case 4: ModificarEmpresa(); break;
-                    case 5: BajaEmpresa(); break;
-                    case 6: salir = true; break;
+                    case 4: VerPersonasDeEmpresa(); break;
+                    case 5: ModificarEmpresa(); break;
+                    case 6: BajaEmpresa(); break;
+                    case 7: salir = true; break;
                 }
 
                 if (!salir)
@@ -87,7 +89,8 @@ namespace Agenda
 
             foreach (var empresa in activas)
             {
-                Console.WriteLine(empresa);
+                int cantidadPersonas = GestionPersonas.listaPersonas.Count(p => p.IdEmpresa == empresa.IdEmpresa);
+                Console.WriteLine($"{empresa} | Plantilla: {cantidadPersonas} persona(s)");
             }
         }
 
@@ -138,7 +141,38 @@ namespace Agenda
             }
         }
 
-        // 4. MODIFICACIÓN
+        // 4. VER PERSONAS DE UNA EMPRESA
+        private static void VerPersonasDeEmpresa()
+        {
+            Console.WriteLine("--- CONSULTAR PLANTILLA DE PERSONAS ---");
+            int id = Validador.LeerEntero("Ingrese ID de la empresa: ", 1, int.MaxValue);
+            var empresa = listaEmpresas.FirstOrDefault(e => e.Activo && e.IdEmpresa == id);
+
+            if (empresa == null)
+            {
+                Console.WriteLine("\nNo existe ninguna empresa activa con ese ID.");
+                return;
+            }
+
+            var personasAsociadas = GestionPersonas.listaPersonas.Where(p => p.IdEmpresa == empresa.IdEmpresa).ToList();
+
+            Console.WriteLine($"\nEmpresa: {empresa.NombreComercial} (CIF: {empresa.Cif})");
+            Console.WriteLine($"Total personas vinculadas: {personasAsociadas.Count}");
+            Console.WriteLine("--------------------------------------------------");
+
+            if (!personasAsociadas.Any())
+            {
+                Console.WriteLine("Esta empresa no tiene personas vinculadas actualmente.");
+                return;
+            }
+
+            foreach (var p in personasAsociadas)
+            {
+                Console.WriteLine($"[ID Persona: {p.IdPersona}] {p.Nombre} {p.Apellidos} | Tel: {p.Telefono} | Email: {p.Correo}");
+            }
+        }
+
+        // 5. MODIFICACIÓN
         private static void ModificarEmpresa()
         {
             Console.WriteLine("--- MODIFICAR EMPRESA ---");
@@ -170,7 +204,7 @@ namespace Agenda
             Console.WriteLine("\nDatos actualizados correctamente.");
         }
 
-        // 5. BAJA
+        // 6. BAJA (Con control de integridad referencial)
         private static void BajaEmpresa()
         {
             Console.WriteLine("--- BAJA DE EMPRESA ---");
@@ -180,6 +214,16 @@ namespace Agenda
             if (empresa == null)
             {
                 Console.WriteLine("\nNo existe ninguna empresa activa con ese ID.");
+                return;
+            }
+
+            // Validación de Integridad Referencial
+            var personasVinculadas = GestionPersonas.listaPersonas.Where(p => p.IdEmpresa == empresa.IdEmpresa).ToList();
+            if (personasVinculadas.Any())
+            {
+                Console.WriteLine($"\nNO SE PUEDE DAR DE BAJA ESTA EMPRESA.");
+                Console.WriteLine($"Tiene {personasVinculadas.Count} persona(s) asociada(s) actualmente.");
+                Console.WriteLine("Política de seguridad: Debe desvincular o reasignar a las personas antes de dar de baja la empresa.");
                 return;
             }
 
